@@ -84,10 +84,10 @@ public void OnPluginStart()
 	g_GlobalMapList = new ArrayList(arraySize);
 	g_Cvar_ExcludeOld = CreateConVar("sm_nominate_excludeold", "1", "Specifies if the current map should be excluded from the Nominations list", 0, true, 0.00, true, 1.0);
 	g_Cvar_ExcludeCurrent = CreateConVar("sm_nominate_excludecurrent", "1", "Specifies if the MapChooser excluded maps should also be excluded from Nominations", 0, true, 0.00, true, 1.0);
-	g_Cvar_ServerTier = CreateConVar("sm_server_tier", "1.0", "Specifies the servers tier to only include maps from, for example if you want a tier 1-3 server make it 1.3, a tier 2 only server would be 2.0, etc", 0, true, 1.0, true, 6.0);
-	g_Cvar_TimerType = CreateConVar("sm_cksurf_type", "1", "Specifies the type of ckSurf the server is using, 0 for normal/niko/marcos, 1 for fluffys");
+	g_Cvar_ServerTier = CreateConVar("sm_server_tier", "1.7", "Specifies the servers tier to only include maps from, for example if you want a tier 1-3 server make it 1.3, a tier 2 only server would be 2.0, etc", 0, true, 1.0, true, 7.0);
+	g_Cvar_TimerType = CreateConVar("sm_cksurf_type", "0", "Specifies the type of ckSurf the server is using, 0 for normal/niko/marcos, 1 for fluffys");
 	g_Cvar_IncludeAllMaps = CreateConVar("sm_include_all", "0", "Include all maps in nominate, even if the map isnt found inside the mapycycle.txt/multi_server_mapcycle.txt", 0, true, 0.00, true, 1.0);
-	g_Cvar_DatabaseName = CreateConVar("sm_mapchooser_db_name", "surftimer", "Specifies the database name that will be used in databases.cfg");
+	g_Cvar_DatabaseName = CreateConVar("sm_mapchooser_db_name", "cksurf", "Specifies the database name that will be used in databases.cfg");
 
 	RegConsoleCmd("sm_nominate", Command_Nominate);
 	
