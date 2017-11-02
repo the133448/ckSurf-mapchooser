@@ -39,8 +39,8 @@
 
 public Plugin myinfo =
 {
-	name = "Map Nominations",
-	author = "AlliedModders LLC",
+	name = "cksurf-Map Nominations",
+	author = "AlliedModders LLC Edited by fluffyst + 1DJ",
 	description = "Provides Map Nominations",
 	version = SOURCEMOD_VERSION,
 	url = "http://www.sourcemod.net/"

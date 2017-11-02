@@ -41,8 +41,8 @@
 
 public Plugin myinfo =
 {
-	name = "MapChooser",
-	author = "AlliedModders LLC",
+	name = "ckSurf-MapChooser",
+	author = "AlliedModders LLC Edited by fluffyst + 1DJ",
 	description = "Automated Map Voting",
 	version = SOURCEMOD_VERSION,
 	url = "http://www.sourcemod.net/"
