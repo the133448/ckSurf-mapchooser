@@ -323,7 +323,7 @@ public int NominateTypeHandler(Handle menu, MenuAction action, int param1, int p
 			case 0:
 			{
 				g_iMenuLevel[param1] = 1;
-				g_MapMenu.SetTitle("KZG Choose a Map");
+				g_MapMenu.SetTitle("[KZG] Choose a Map");
 				SetMenuExitBackButton(g_MapMenu, true);
 				g_MapMenu.Display(param1, MENU_TIME_FOREVER);
 			}
