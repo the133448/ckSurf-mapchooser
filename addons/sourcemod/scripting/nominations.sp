@@ -51,7 +51,7 @@ ConVar g_Cvar_ExcludeCurrent;
 ConVar g_Cvar_ServerTier;
 ConVar g_Cvar_TimerType;
 ConVar g_Cvar_IncludeAllMaps;
-//ConVar g_Cvar_DatabaseName;
+ConVar g_Cvar_ShowAllMaps;
 
 Menu g_MapMenu = null;
 ArrayList g_MapList = null;
@@ -699,10 +699,7 @@ public int Handler_ClientMapSelectMenu(Menu menu, MenuAction action, int param1,
 public void db_setupDatabase()
 {
 	char szError[255];
-	//char szDBName[32];
-	//GetConVarString(g_Cvar_DatabaseName, szDBName, sizeof(szDBName));
 	g_hDb = SQL_Connect("cksurf", false, szError, 255);
-	
 	if (g_hDb == null)
 	{
 		SetFailState("[Nominations] Unable to connect to database (%s)", szError);
@@ -1087,15 +1084,15 @@ public void SelectMapList()
 	
 	if (StrEqual(szBuffer[1], "0"))
 	{
-		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier = %s", PERCENT, PERCENT, szBuffer[0]);
+		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier = %s %s", PERCENT, PERCENT, szBuffer[0], szRanked);
 	}
 	else if (strlen(szBuffer[1]) > 0)
 	{
-		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier >= %s AND tier <= %s;", PERCENT, PERCENT, szBuffer[0], szBuffer[1]);
+		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier >= %s AND tier <= %s %s", PERCENT, PERCENT, szBuffer[0], szBuffer[1], szRanked);
 	}
 	else
 	{
-		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c';", PERCENT, PERCENT);
+		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' %s", PERCENT, PERCENT, szRanked);
 	}
 	
 	SQL_TQuery(g_hDb, SelectMapListCallback, szQuery, DBPrio_Low);

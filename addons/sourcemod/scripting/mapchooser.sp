@@ -74,6 +74,8 @@ ConVar g_Cvar_ServerTier;
 ConVar g_Cvar_IncludeAllMaps;
 Handle g_VoteTimer = null;
 Handle g_RetryTimer = null;
+ConVar g_Cvar_TimerType;
+ConVar g_Cvar_ShowAllMaps;
 
 // g_MapList stores unresolved names so we can resolve them after every map change in the workshop updates.
 // g_OldMapList and g_NextMapList are resolved. g_NominateList depends on the nominations implementation.
@@ -214,6 +216,10 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 public void OnConfigsExecuted()
 {
 	SetMapListCompatBind("cksurf", "mapcyclefile");
+
+	g_Cvar_IncludeAllMaps = FindConVar("sm_include_all");
+	g_Cvar_TimerType = FindConVar("sm_cksurf_type");
+	g_Cvar_ShowAllMaps = FindConVar("sm_mapchooser_show_all_maps");
 	
 	Handle multiserver = FindConVar("ck_multi_server_mapcycle");
 	if (GetConVarBool(multiserver))
@@ -238,9 +244,7 @@ public void OnConfigsExecuted()
 			g_GlobalMapList.GetString(i, sCurrentMap, sizeof(sCurrentMap));
 		}
 	}
-	
-	g_Cvar_ServerTier = FindConVar("sm_server_tier");
-	g_Cvar_IncludeAllMaps = FindConVar("sm_include_all");
+
 	SelectMapList();
 	
 	g_TotalRounds = 0;
@@ -1264,32 +1268,36 @@ public void db_setupDatabase()
 
 public void SelectMapList()
 {
-	/*if (g_Cvar_ServerTier != null)
-	{*/
-	char szQuery[128];
+	g_Cvar_ServerTier = FindConVar("sm_server_tier");
 	
+	char szQuery[128];
 	char szTier[16];
 	char szBuffer[2][32];
 	GetConVarString(g_Cvar_ServerTier, szTier, sizeof(szTier));
 	//FloatToString(tier, szTier, 16);
 	ExplodeString(szTier, ".", szBuffer, 2, 32);
 	//ReplaceString(szBuffer[1], 32, "0", "", false);
-	
+
+	char szRanked[32];
+	if (GetConVarInt(g_Cvar_TimerType) == 1 && !GetConVarBool(g_Cvar_ShowAllMaps))
+		Format(szRanked, sizeof(szRanked), "AND ranked = 1;");
+	else
+		Format(szRanked, sizeof(szRanked), ";");
+
 	if (StrEqual(szBuffer[1], "0"))
 	{
-		Format(szQuery, 128, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier = %s;", PERCENT, PERCENT, szBuffer[0]);
+		Format(szQuery, 128, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier = %s %s", PERCENT, PERCENT, szBuffer[0], szRanked);
 	}
 	else if (strlen(szBuffer[1]) > 0)
 	{
-		Format(szQuery, 128, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier >= %s AND tier <= %s;", PERCENT, PERCENT, szBuffer[0], szBuffer[1]);
+		Format(szQuery, 128, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier >= %s AND tier <= %s %s", PERCENT, PERCENT, szBuffer[0], szBuffer[1], szRanked);
 	}
 	else
 	{
-		Format(szQuery, 128, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c';", PERCENT, PERCENT);
+		Format(szQuery, 128, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' %s", PERCENT, PERCENT, szRanked);
 	}
-	
+
 	SQL_TQuery(g_hDb, SelectMapListCallback, szQuery, DBPrio_Low);
-	/*}*/
 }
 
 public void SelectMapListCallback(Handle owner, Handle hndl, const char[] error, any data)
