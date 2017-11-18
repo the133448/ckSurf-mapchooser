@@ -51,7 +51,6 @@ ConVar g_Cvar_ExcludeCurrent;
 ConVar g_Cvar_ServerTier;
 ConVar g_Cvar_TimerType;
 ConVar g_Cvar_IncludeAllMaps;
-ConVar g_Cvar_ShowAllMaps;
 
 Menu g_MapMenu = null;
 ArrayList g_MapList = null;
@@ -741,10 +740,7 @@ public void SelectMapListTierCallback(Handle owner, Handle hndl, const char[] er
 			GetExcludeMapList(excludeMaps);
 		}
 		
-		if (g_Cvar_ExcludeCurrent.BoolValue)
-		{
-			GetCurrentMap(currentMap, sizeof(currentMap));
-		}
+		GetCurrentMap(currentMap, sizeof(currentMap));
 		
 		int tier;
 		char szValue[256];
@@ -754,6 +750,7 @@ public void SelectMapListTierCallback(Handle owner, Handle hndl, const char[] er
 			tier = SQL_FetchInt(hndl, 1);
 			if (!GetConVarBool(g_Cvar_IncludeAllMaps) && bIsMapGlobal(szMapName) || GetConVarBool(g_Cvar_IncludeAllMaps))
 			{
+				bool disabled = false;
 				Format(szValue, 256, "%s - Tier %i", szMapName, tier);
 				
 				int status = MAPSTATUS_ENABLED;
@@ -767,6 +764,7 @@ public void SelectMapListTierCallback(Handle owner, Handle hndl, const char[] er
 				{
 					if (StrEqual(szMapName, currentMap))
 					{
+						disabled = true;
 						status = MAPSTATUS_DISABLED | MAPSTATUS_EXCLUDE_CURRENT;
 					}
 				}
@@ -776,13 +774,17 @@ public void SelectMapListTierCallback(Handle owner, Handle hndl, const char[] er
 				{
 					if (excludeMaps.FindString(szMapName) != -1 || excludeMaps.FindString(szValue) != -1)
 					{
+						disabled = true;
 						status = MAPSTATUS_DISABLED | MAPSTATUS_EXCLUDE_PREVIOUS;
 					}
 				}
 				
-				
-				AddMenuItem(menu, szValue, szMapName);
-				g_mapTrie.SetValue(szMapName, status);
+				if(disabled)
+					AddMenuItem(menu, szValue, szMapName, ITEMDRAW_DISABLED);
+				else
+					AddMenuItem(menu, szValue, szMapName);
+				//AddMenuItem(menu, szValue, szMapName);
+				//g_mapTrie.SetValue(szMapName, status);
 			}
 		}
 		
@@ -867,6 +869,7 @@ public void SelectCompletedMapsCallback(Handle owner, Handle hndl, const char[] 
 		if (g_Cvar_ExcludeCurrent.BoolValue)
 		{
 			GetCurrentMap(currentMap, sizeof(currentMap));
+			
 		}
 		
 		char szSteamId[32], szMapName[128], szTime[32], szValue[128], szValue2[256];
@@ -921,11 +924,12 @@ public void SelectCompletedMapsCallback(Handle owner, Handle hndl, const char[] 
 				
 				char displayName[PLATFORM_MAX_PATH];
 				GetMapDisplayName(szMapName, displayName, sizeof(displayName));
-				
+				bool disabled = false;
 				if (g_Cvar_ExcludeCurrent.BoolValue)
 				{
 					if (StrEqual(szMapName, currentMap))
 					{
+						disabled = true;
 						status = MAPSTATUS_DISABLED | MAPSTATUS_EXCLUDE_CURRENT;
 					}
 				}
@@ -935,12 +939,15 @@ public void SelectCompletedMapsCallback(Handle owner, Handle hndl, const char[] 
 				{
 					if (excludeMaps.FindString(szMapName) != -1 || excludeMaps.FindString(szValue2) != -1)
 					{
+						disabled = true;
 						status = MAPSTATUS_DISABLED | MAPSTATUS_EXCLUDE_PREVIOUS;
 					}
 				}
-				
-				AddMenuItem(menu, szValue2, szValue);
-				g_mapTrie.SetValue(szMapName, status);
+				if(disabled)
+					AddMenuItem(menu, szValue2, szValue, ITEMDRAW_DISABLED);
+				else
+					AddMenuItem(menu, szValue2, szValue);
+				//g_mapTrie.SetValue(szMapName, status);
 			}
 		}
 		SetMenuExitBackButton(menu, true);
@@ -1039,7 +1046,7 @@ public void SelectIncompleteMapsCallback(Handle owner, Handle hndl, const char[]
 				
 				int status = MAPSTATUS_ENABLED;
 				
-				
+				bool disabled = false;
 				//FindMap(szMapName, szMapName, sizeof(szMapName));
 
 				char displayName[PLATFORM_MAX_PATH];
@@ -1049,6 +1056,7 @@ public void SelectIncompleteMapsCallback(Handle owner, Handle hndl, const char[]
 				{
 					if (StrEqual(szMapName, currentMap))
 					{
+						disabled = true;
 						status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_CURRENT;
 					}
 				}
@@ -1058,12 +1066,16 @@ public void SelectIncompleteMapsCallback(Handle owner, Handle hndl, const char[]
 				{
 					if (excludeMaps.FindString(szMapName) != -1 || excludeMaps.FindString(szValue) != -1)
 					{
+						disabled = true;
 						status = MAPSTATUS_DISABLED|MAPSTATUS_EXCLUDE_PREVIOUS;
 					}
 				}
-				
-				AddMenuItem(menu, szValue, szValue);
-				g_mapTrie.SetValue(szMapName, status);
+				if(disabled)
+					AddMenuItem(menu, szValue, szValue, ITEMDRAW_DISABLED);
+				else
+					AddMenuItem(menu, szValue, szValue);
+				//AddMenuItem(menu, szValue, szValue);
+				//g_mapTrie.SetValue(szMapName, status);
 			}
 		}
 		SetMenuExitBackButton(menu, true);
@@ -1084,15 +1096,15 @@ public void SelectMapList()
 	
 	if (StrEqual(szBuffer[1], "0"))
 	{
-		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier = %s %s", PERCENT, PERCENT, szBuffer[0], szRanked);
+		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier = %s", PERCENT, PERCENT, szBuffer[0]);
 	}
 	else if (strlen(szBuffer[1]) > 0)
 	{
-		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier >= %s AND tier <= %s %s", PERCENT, PERCENT, szBuffer[0], szBuffer[1], szRanked);
+		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' AND tier >= %s AND tier <= %s", PERCENT, PERCENT, szBuffer[0], szBuffer[1]);
 	}
 	else
 	{
-		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c' %s", PERCENT, PERCENT, szRanked);
+		Format(szQuery, 256, "SELECT mapname, tier FROM ck_maptier WHERE mapname LIKE '%csurf%c'", PERCENT, PERCENT);
 	}
 	
 	SQL_TQuery(g_hDb, SelectMapListCallback, szQuery, DBPrio_Low);
